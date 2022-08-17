@@ -1,0 +1,25 @@
+[package]
+name = "pfls"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "pfls"
+crate-type = ["cdylib"]
+path = "src/pybridge.rs"
+test = true
+doc = true
+[profile.test]
+opt-level = 3
+
+[features]
+count_operations=[]
+
+[dependencies]
+paste = {version = "1.0.6"}
+num = "0.4.0"
+num-traits = "0.2"
+rand  = {version = "0.8"}
+pyo3 = {version = "0.15.0", features = ["extension-module"]}
+numpy = "0.15"
+ndarray = {version = "0.15"}
