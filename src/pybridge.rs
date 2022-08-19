@@ -150,7 +150,7 @@ macro_rules! inner_product_bounds_struct_gen {
 			#[pymethods]
 			impl [<$product_name Bounds $type_appendix>] {
 				#[new]
-				pub fn new($($args: $arg_types,)* data: PyReadonlyArray2<$type>, num_pivots: Option<usize>, refs: Option<PyReadonlyArray2<$type>>) -> [<$product_name Bounds $type_appendix>] {
+				pub fn new(data: PyReadonlyArray2<$type> $(, $args: $arg_types)*, num_pivots: Option<usize>, refs: Option<PyReadonlyArray2<$type>>) -> [<$product_name Bounds $type_appendix>] {
 					[<$product_name Bounds $type_appendix>] {
 						bounds: InnerProductBounder::new(
 							$product_name::new($($prod_arg),*),
@@ -214,7 +214,7 @@ macro_rules! pfls_struct_gen {
 			#[pymethods]
 			impl [<$name_prefix PFLS $type_appendix>] {
 				#[new]
-				pub fn new($($args: $arg_types,)* data: PyReadonlyArray2<$type>, num_pivots: Option<usize>, refs: Option<PyReadonlyArray2<$type>>) -> [<$name_prefix PFLS $type_appendix>] {
+				pub fn new(data: PyReadonlyArray2<$type> $(, $args: $arg_types)*, num_pivots: Option<usize>, refs: Option<PyReadonlyArray2<$type>>) -> [<$name_prefix PFLS $type_appendix>] {
 					[<$name_prefix PFLS $type_appendix>] {
 						index: PFLS::new(
 							$product_name::new($($prod_arg),*),

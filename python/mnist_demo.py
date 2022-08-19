@@ -18,7 +18,12 @@ def show_mnist(*images, **layout_args):
 		z=full_img,
 		showscale=False,
 		colorscale="gray",
-	),layout=dict(yaxis=dict(scaleanchor="x"),**layout_args)).show()
+	),layout=dict(
+    plot_bgcolor='rgba(0,0,0,0)',
+		xaxis=dict(showticklabels=False, showgrid=False),
+		yaxis=dict(showticklabels=False, showgrid=False, scaleanchor="x", range=[0,27]),
+		**layout_args
+	)).show()
 
 
 # You can modify the number of pivots and queried neighbors here.
@@ -35,12 +40,12 @@ X = np.array([[x for x in row] for row in X])
 # This list only contains generating lambdas to not instantiate all
 # indices prior to choosing.
 idx_gen, smallests = [
-	[lambda: pfls.EucDistancePFLSF64(X, k), True],
-	[lambda: pfls.DotProductPFLSF64(X, k), False],
-	[lambda: pfls.MahalanobisDistancePFLSF64(np.linalg.pinv(np.cov(X,rowvar=False)), X, k), True],
-	[lambda: pfls.MahalanobisKernelPFLSF64(np.linalg.pinv(np.cov(X,rowvar=False)), X, k), False],
-	[lambda: pfls.RBFDistancePFLSF64(1, X, k), True],
-	[lambda: pfls.RBFKernelPFLSF64(1, X, k), False],
+	[lambda: pfls.EucDistancePFLSF64(X, num_pivots=k), True],
+	[lambda: pfls.DotProductPFLSF64(X, num_pivots=k), False],
+	[lambda: pfls.MahalanobisDistancePFLSF64(X, num_pivots=k, inv_cov=np.linalg.pinv(np.cov(X,rowvar=False))), True],
+	[lambda: pfls.MahalanobisKernelPFLSF64(X, num_pivots=k, inv_cov=np.linalg.pinv(np.cov(X,rowvar=False))), False],
+	[lambda: pfls.RBFDistancePFLSF64(X, num_pivots=k, bandwidth=1), True],
+	[lambda: pfls.RBFKernelPFLSF64(X, num_pivots=k, bandwidth=1), False],
 ][1]
 idx = idx_gen()
 # "Smallests" is chosen to give you the most similar results.
@@ -58,7 +63,7 @@ knns = [i for i in knns if i != query_index]
 show_mnist(
 	X_original[query_index],
 	title="Query",
-	height=250,
+	height=200,
 	margin={s:10 for s in "blr"}
 )
 show_mnist(
@@ -66,6 +71,6 @@ show_mnist(
 	title="\"Nearest neighbors\" (smallest measure)"
 	if smallests else
 	"\"Farthest neighbors\" (largest measure)",
-	height=250,
+	height=200,
 	margin={s:10 for s in "blr"}
 )

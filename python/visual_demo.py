@@ -14,12 +14,12 @@ X -= np.mean(X,axis=0)
 # This list only contains generating lambdas to not instantiate all
 # indices prior to choosing.
 idx_gen, smallests = [
-	[lambda: pfls.EucDistancePFLSF64(X, k), True],
-	[lambda: pfls.DotProductPFLSF64(X, k), False],
-	[lambda: pfls.MahalanobisDistancePFLSF64(np.linalg.pinv(np.cov(X,rowvar=False)), X, k), True],
-	[lambda: pfls.MahalanobisKernelPFLSF64(np.linalg.pinv(np.cov(X,rowvar=False)), X, k), False],
-	[lambda: pfls.RBFDistancePFLSF64(1, X, k), True],
-	[lambda: pfls.RBFKernelPFLSF64(1, X, k), False],
+	[lambda: pfls.EucDistancePFLSF64(X, num_pivots=k), True],
+	[lambda: pfls.DotProductPFLSF64(X, num_pivots=k), False],
+	[lambda: pfls.MahalanobisDistancePFLSF64(X, num_pivots=k, inv_cov=np.linalg.pinv(np.cov(X,rowvar=False))), True],
+	[lambda: pfls.MahalanobisKernelPFLSF64(X, num_pivots=k, inv_cov=np.linalg.pinv(np.cov(X,rowvar=False))), False],
+	[lambda: pfls.RBFDistancePFLSF64(X, num_pivots=k, bandwidth=1), True],
+	[lambda: pfls.RBFKernelPFLSF64(X, num_pivots=k, bandwidth=1), False],
 ][0]
 idx = idx_gen()
 # "Smallests" is chosen to give you the most similar results.
