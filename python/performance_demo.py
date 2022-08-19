@@ -30,10 +30,13 @@ def similar_lists(a,b,eps=1e-10):
 	return True
 
 # You can modify the number of data points, dimensions, pivots, and queries here.
-n,d,k,q = 10000, 500, 650, 100
+n,d,k,q = 10000, 200, 60, 100
+# You can modify how many repetitions per benchmark are executed.
+n_repetitions = 2
 
-# Generating normally random data and mean centering.
-X = np.random.normal(0,1,(n,d))
+# Generating normally random data with a lowered intrinsic dimensionality
+# by scaling down some dimensions and mean centering.
+X = np.random.normal(0,1,(n,d)) * np.random.sample(d)**4
 X -= np.mean(X,axis=0)
 
 # Instantiating two indices for comparison.
@@ -41,16 +44,20 @@ idx1 = pfls.EucDistancePFLSF64(X, k)
 idx2 = cKDTree(X)
 
 # Benchmarking both indices on knn queries and comparing results
-r1 = benchmark(idx1.query, X[:q], 50, n_repetitions=20)
-r2 = benchmark(idx2.query, X[:q], 50, n_repetitions=20)
+print("Benchmarking PFLS k-nearest neighbors query")
+r1 = benchmark(idx1.query, X[:q], 50, n_repetitions=n_repetitions)
+print("Benchmarking KD-Tree k-nearest neighbors query")
+r2 = benchmark(idx2.query, X[:q], 50, n_repetitions=n_repetitions)
 for i in range(q):
 	assert similar_lists(r1[0][i], r2[0][i])
 	assert similar_lists(r1[1][i], r2[1][i])
 
 # Benchmarking both indices on range quers and comparing results
 eps = np.percentile(euclidean_distances(X,X), 5)
-r1 = benchmark(idx1.query_ball_point, X[:q], eps, n_repetitions=20)
-r2 = benchmark(idx2.query_ball_point, X[:q], eps, n_repetitions=20)
+print("Benchmarking PFLS range query")
+r1 = benchmark(idx1.query_ball_point, X[:q], eps, n_repetitions=n_repetitions)
+print("Benchmarking KD-Tree range query")
+r2 = benchmark(idx2.query_ball_point, X[:q], eps, n_repetitions=n_repetitions)
 for i in range(q):
 	assert similar_lists(r1[i], r2[i])
 
