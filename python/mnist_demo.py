@@ -48,8 +48,8 @@ idx_gen, smallests = [
 	[lambda: pfls.MahalanobisKernelPFLSF64(X, num_pivots=k, inv_cov=np.linalg.pinv(np.cov(X,rowvar=False))), False],
 	[lambda: pfls.RBFDistancePFLSF64(X, num_pivots=k, bandwidth=1), True],
 	[lambda: pfls.RBFKernelPFLSF64(X, num_pivots=k, bandwidth=1), False],
-	[lambda: pfls.PolyDistancePFLSF64(X, num_pivots=k, scale=1, bias=1, degree=5), True],
-	[lambda: pfls.PolyKernelPFLSF64(X, num_pivots=k, scale=1, bias=1, degree=5), False],
+	[lambda: pfls.PolyDistancePFLSF64(X, num_pivots=k, scale=1e-6, bias=1, degree=5), True],
+	[lambda: pfls.PolyKernelPFLSF64(X, num_pivots=k, scale=1e-6, bias=1, degree=5), False],
 	[lambda: pfls.SigmoidDistancePFLSF64(X, num_pivots=k, scale=1e-6, bias=0), True],
 	[lambda: pfls.SigmoidKernelPFLSF64(X, num_pivots=k, scale=1e-6, bias=0), False],
 ][-2]
@@ -58,7 +58,6 @@ idx = idx_gen()
 # For products, most similar means largests measure, for distances smallests measure.
 # Invert to get the most dissimilar examples.
 # smallests = not smallests
-
 # Selecting a random sample for querying and performing a knn query.
 query_index = np.random.randint(X.shape[0])
 q = X[query_index]

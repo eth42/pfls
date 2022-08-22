@@ -229,7 +229,7 @@ impl<N: Float> InnerProduct<N> for PolyKernel<N> {
 }
 
 
-/* Polynomial Kernel with <x,y> = tanh(scale * x^Ty + bias). */
+/* Sigmoid Kernel with <x,y> = tanh(scale * x^Ty + bias). */
 #[derive(Debug,Clone)]
 pub struct SigmoidKernel<N: Float> {scale: N, bias: N}
 impl<N: Float> SigmoidKernel<N> {
