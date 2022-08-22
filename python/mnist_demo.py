@@ -36,17 +36,23 @@ X_original = X.copy()
 X -= np.mean(X,axis=0)
 X = np.array([[x for x in row] for row in X])
 
-# Chose what index to use by changing the index at the end of this list.
+# Choose what index to use by changing the index at the end of this list.
 # This list only contains generating lambdas to not instantiate all
 # indices prior to choosing.
 idx_gen, smallests = [
 	[lambda: pfls.EucDistancePFLSF64(X, num_pivots=k), True],
 	[lambda: pfls.DotProductPFLSF64(X, num_pivots=k), False],
+	[lambda: pfls.SqrtCosDistPFLSF64(X, num_pivots=k), True],
+	[lambda: pfls.CosSimPFLSF64(X, num_pivots=k), False],
 	[lambda: pfls.MahalanobisDistancePFLSF64(X, num_pivots=k, inv_cov=np.linalg.pinv(np.cov(X,rowvar=False))), True],
 	[lambda: pfls.MahalanobisKernelPFLSF64(X, num_pivots=k, inv_cov=np.linalg.pinv(np.cov(X,rowvar=False))), False],
 	[lambda: pfls.RBFDistancePFLSF64(X, num_pivots=k, bandwidth=1), True],
 	[lambda: pfls.RBFKernelPFLSF64(X, num_pivots=k, bandwidth=1), False],
-][1]
+	[lambda: pfls.PolyDistancePFLSF64(X, num_pivots=k, scale=1, bias=1, degree=5), True],
+	[lambda: pfls.PolyKernelPFLSF64(X, num_pivots=k, scale=1, bias=1, degree=5), False],
+	[lambda: pfls.SigmoidDistancePFLSF64(X, num_pivots=k, scale=1e-6, bias=0), True],
+	[lambda: pfls.SigmoidKernelPFLSF64(X, num_pivots=k, scale=1e-6, bias=0), False],
+][-2]
 idx = idx_gen()
 # "Smallests" is chosen to give you the most similar results.
 # For products, most similar means largests measure, for distances smallests measure.
@@ -68,9 +74,11 @@ show_mnist(
 )
 show_mnist(
 	X_original[knns],
-	title="\"Nearest neighbors\" (smallest measure)"
-	if smallests else
-	"\"Farthest neighbors\" (largest measure)",
+	title=(
+		"\"Nearest neighbors\" (smallest measure) in {:}"
+		if smallests else
+		"\"Farthest neighbors\" (largest measure) in {:}"
+	).format(type(idx).__name__),
 	height=200,
 	margin={s:10 for s in "blr"}
 )

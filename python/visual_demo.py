@@ -10,16 +10,22 @@ n, k, n_neighbors = 1000, 1, 150
 X = make_blobs(n, centers=2)[0]
 X -= np.mean(X,axis=0)
 
-# Chose what index to use by changing the index at the end of this list.
+# Choose what index to use by changing the index at the end of this list.
 # This list only contains generating lambdas to not instantiate all
 # indices prior to choosing.
 idx_gen, smallests = [
 	[lambda: pfls.EucDistancePFLSF64(X, num_pivots=k), True],
 	[lambda: pfls.DotProductPFLSF64(X, num_pivots=k), False],
+	[lambda: pfls.SqrtCosDistPFLSF64(X, num_pivots=k), True],
+	[lambda: pfls.CosSimPFLSF64(X, num_pivots=k), False],
 	[lambda: pfls.MahalanobisDistancePFLSF64(X, num_pivots=k, inv_cov=np.linalg.pinv(np.cov(X,rowvar=False))), True],
 	[lambda: pfls.MahalanobisKernelPFLSF64(X, num_pivots=k, inv_cov=np.linalg.pinv(np.cov(X,rowvar=False))), False],
 	[lambda: pfls.RBFDistancePFLSF64(X, num_pivots=k, bandwidth=1), True],
 	[lambda: pfls.RBFKernelPFLSF64(X, num_pivots=k, bandwidth=1), False],
+	[lambda: pfls.PolyDistancePFLSF64(X, num_pivots=k, scale=1, bias=1, degree=5), True],
+	[lambda: pfls.PolyKernelPFLSF64(X, num_pivots=k, scale=1, bias=1, degree=5), False],
+	[lambda: pfls.SigmoidDistancePFLSF64(X, num_pivots=k, scale=.02, bias=0), True],
+	[lambda: pfls.SigmoidKernelPFLSF64(X, num_pivots=k, scale=.02, bias=0), False],
 ][0]
 idx = idx_gen()
 # "Smallests" is chosen to give you the most similar results.

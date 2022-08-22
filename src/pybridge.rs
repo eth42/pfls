@@ -11,11 +11,11 @@ pub mod primitives;
 mod test;
 
 use spatialpruning::{PFLS, InnerProductBounder};
-#[cfg(not(feature="count_operations"))]
-use measures::{InnerProduct, DotProduct, RBFKernel, MahalanobisKernel};
-#[cfg(feature="count_operations")]
-use measures::{InnerProduct, DotProduct, RBFKernel, MahalanobisKernel, PROD_COUNTER, DIST_COUNTER};
-
+// #[cfg(not(feature="count_operations"))]
+// use measures::{InnerProduct, DotProduct, RBFKernel, MahalanobisKernel, PolyKernel};
+// #[cfg(feature="count_operations")]
+// use measures::{InnerProduct, DotProduct, RBFKernel, MahalanobisKernel, PolyKernel, PROD_COUNTER, DIST_COUNTER};
+use measures::{*};
 
 
 
@@ -286,10 +286,15 @@ macro_rules! build_structs_for_product {
 	};
 }
 build_structs_for_product!(DotProduct, EucDistance);
+build_structs_for_product!(CosSim, SqrtCosDist);
 build_structs_for_product!(RBFKernel(bandwidth: f32){bandwidth}, RBFDistance, F32, f32);
 build_structs_for_product!(RBFKernel(bandwidth: f64){bandwidth}, RBFDistance, F64, f64);
 build_structs_for_product!(MahalanobisKernel(inv_cov: PyReadonlyArray2<f32>){inv_cov.as_array()}, MahalanobisDistance, F32, f32);
 build_structs_for_product!(MahalanobisKernel(inv_cov: PyReadonlyArray2<f64>){inv_cov.as_array()}, MahalanobisDistance, F64, f64);
+build_structs_for_product!(PolyKernel(scale: f32, bias: f32, degree: f32){scale, bias, degree}, PolyDistance, F32, f32);
+build_structs_for_product!(PolyKernel(scale: f64, bias: f64, degree: f64){scale, bias, degree}, PolyDistance, F64, f64);
+build_structs_for_product!(SigmoidKernel(scale: f32, bias: f32){scale, bias}, SigmoidDistance, F32, f32);
+build_structs_for_product!(SigmoidKernel(scale: f64, bias: f64){scale, bias}, SigmoidDistance, F64, f64);
 
 
 
@@ -313,8 +318,11 @@ macro_rules! python_export {
 #[pymodule]
 fn pfls(_py: Python, m: &PyModule) -> PyResult<()> {
 	python_export!(m, DotProduct, EucDistance);
+	python_export!(m, CosSim, SqrtCosDist);
 	python_export!(m, RBFKernel, RBFDistance);
 	python_export!(m, MahalanobisKernel, MahalanobisDistance);
+	python_export!(m, PolyKernel, PolyDistance);
+	python_export!(m, SigmoidKernel, SigmoidDistance);
 	#[cfg(feature="count_operations")]
 	{
 		m.add_function(wrap_pyfunction!(get_prod_counter, m)?)?;
