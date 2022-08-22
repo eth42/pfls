@@ -1,7 +1,11 @@
 use pyo3::prelude::*;
+use pyo3::ffi::{PyFloat_AS_DOUBLE};
+use pyo3::AsPyPointer;
 use numpy::{IntoPyArray, PyArray1, PyArray2, PyReadonlyArrayDyn, PyReadonlyArray1, PyReadonlyArray2};
 use paste::paste;
-use ndarray::{OwnedRepr};
+use std::marker::PhantomData;
+use num::{Float};
+use ndarray::{ArrayBase,Data,Ix1,OwnedRepr};
 
 pub mod measures;
 pub mod spatialpruning;
@@ -15,7 +19,36 @@ use spatialpruning::{PFLS, InnerProductBounder};
 // use measures::{InnerProduct, DotProduct, RBFKernel, MahalanobisKernel, PolyKernel};
 // #[cfg(feature="count_operations")]
 // use measures::{InnerProduct, DotProduct, RBFKernel, MahalanobisKernel, PolyKernel, PROD_COUNTER, DIST_COUNTER};
-use measures::{*};
+use measures::*;
+
+
+
+pub trait MyPyFloat: Float + numpy::Element {}
+impl<T: Float + numpy::Element> MyPyFloat for T {}
+
+#[derive(Debug,Clone)]
+pub struct PyProduct<N: MyPyFloat> {_phantom: PhantomData<N>, pyprod: Py<PyAny>}
+impl<N: MyPyFloat> PyProduct<N> {
+	pub fn new(pyprod: Py<PyAny>) -> Self {
+		PyProduct{_phantom: PhantomData{}, pyprod: pyprod}
+	}
+}
+impl<N: MyPyFloat> InnerProduct<N> for PyProduct<N> {
+	fn prod
+	<D1: Data<Elem=N>, D2: Data<Elem=N>>
+	(&self, obj1: &ArrayBase<D1, Ix1>, obj2: &ArrayBase<D2, Ix1>) -> N {
+		#[cfg(feature="count_operations")]
+		unsafe {PROD_COUNTER += 1;}
+		let pyresult = Python::with_gil(|py|
+			self.pyprod.call1(py, (
+				obj1.to_owned().into_pyarray(py),
+				obj2.to_owned().into_pyarray(py)
+			)).unwrap()
+		);
+		let double_result = unsafe {PyFloat_AS_DOUBLE(pyresult.as_ptr())};
+		N::from(double_result).unwrap()
+	}
+}
 
 
 
@@ -296,6 +329,9 @@ build_structs_for_product!(PolyKernel(scale: f64, bias: f64, degree: f64){scale,
 build_structs_for_product!(SigmoidKernel(scale: f32, bias: f32){scale, bias}, SigmoidDistance, F32, f32);
 build_structs_for_product!(SigmoidKernel(scale: f64, bias: f64){scale, bias}, SigmoidDistance, F64, f64);
 
+build_structs_for_product!(PyProduct(pyprod: Py<PyAny>){pyprod}, PyInducedDist, F32, f32);
+build_structs_for_product!(PyProduct(pyprod: Py<PyAny>){pyprod}, PyInducedDist, F64, f64);
+
 
 
 /* Collection of exposable structs for each inner product. */
@@ -323,6 +359,8 @@ fn pfls(_py: Python, m: &PyModule) -> PyResult<()> {
 	python_export!(m, MahalanobisKernel, MahalanobisDistance);
 	python_export!(m, PolyKernel, PolyDistance);
 	python_export!(m, SigmoidKernel, SigmoidDistance);
+	
+	python_export!(m, PyProduct, PyInducedDist);
 	#[cfg(feature="count_operations")]
 	{
 		m.add_function(wrap_pyfunction!(get_prod_counter, m)?)?;
